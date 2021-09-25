@@ -9,7 +9,7 @@ This class is a convenient interface that makes it easy to use the LINK::https:/
 
 It will set up a "main fx" synth at the output of SuperCollider which will process any ambisonics you create in SuperCollider through a properly setup BinauralDecoder with the ambisonic scene being rotated by a SceneRotator. When the users presses ctrl/cmd-period to hardstop the sound, the output synth is automatically respawned. This is equivalent to adding a the SceneRotator and BinauralDecoder to the Master bus of a DAW.
 
-For now, it is assumed that you use ATK to create ambisonics in SuperCollider and it will convert ATK's High Order Ambisonics format to ambix which is compatible with the IEM plugins. It also takes into account the reference radius of IEM's BinauralDecoder (thanks Joseph Andersson for digging this up!).
+For now, it is assumed that you use ATK to create ambisonics in SuperCollider and it will convert ATK's High Order Ambisonics format to ambix which is compatible with the IEM plugins. It also takes into account the reference radius of IEM's BinauralDecoder (thanks Joseph Anderson for digging this up!).
 
 CLASSMETHODS::
 
