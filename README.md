@@ -11,7 +11,7 @@ For now, it is assumed that you use ATK to create ambisonics in SuperCollider an
 ### Dependencies
 
 - [IEM's vstplugin extension for SuperCollider](https://git.iem.at/pd/vstplugin/-/releases)
-- [The IEM plugins]("https://plugins.iem.at/")
+- [The IEM plugins](https://plugins.iem.at/)
 - The `CC14` and `atk-sc3` quarks (these are installed automatically through the quark system when installing this package).
 
 ### Installation
