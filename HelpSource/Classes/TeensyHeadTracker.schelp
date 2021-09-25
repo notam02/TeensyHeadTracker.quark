@@ -25,6 +25,17 @@ METHOD:: bypassVSTPlugins
 
 Setting this to 1 will bypass the SceneRotator and BinauralDecoder plugins while maintaining the output conversion of the ATK ambisonics to ambix. The default is 0 (no bypass).
 
+METHOD:: vstController
+
+This allows access to the internally used LINK::Classes/VstPluginController::.
+
+Useful for example if you want to use the guis of the vst plugins used:
+
+code::
+TeensyHeadTracker.vstController.sceneRot.gui
+TeensyHeadTracker.vstController.binauralDec.gui
+::
+
 EXAMPLES::
 
 code::
