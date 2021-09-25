@@ -1,11 +1,12 @@
 TeensyHeadTracker{
+  classvar synth;
+  classvar bypassVal;
   classvar <numChans, <order;
   classvar <iemBinDecRefRadius = 3.25;
   classvar <enabled=false;
   classvar <sdName;
   classvar <vstController;
   classvar <rollMidi, <pitchMidi, <yawMidi;
-  classvar <>bypassVstPlugins=0;
 
   *new { |order=3|
     ^this.init(order);
@@ -34,6 +35,11 @@ TeensyHeadTracker{
     }
   }
 
+  *bypassVSTPlugins{|value|
+    bypassVal=value;
+    synth.set(\bypass, value);
+  }
+
   *treeFunc{
   ^{
     "Adding % order ambisonics headtracker to main output".format(order).postln;
@@ -45,7 +51,7 @@ TeensyHeadTracker{
       Open plugins
 
       */
-             var synth = Synth.after(1, sdName, [\bus, 0, \bypass, bypassVstPlugins]);
+            synth = Synth.after(1, sdName, [\bus, 0, \bypass, bypassVal]);
             vstController = VSTPluginController.collect(synth);
             Server.local.sync;
 

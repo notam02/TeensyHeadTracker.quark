@@ -21,6 +21,10 @@ The ambisonics order.
 
 returns:: a TeensyHeadTracker
 
+METHOD:: bypassVSTPlugins
+
+Setting this to 1 will bypass the SceneRotator and BinauralDecoder plugins while maintaining the output conversion of the ATK ambisonics to ambix. The default is 0 (no bypass).
+
 EXAMPLES::
 
 code::
