@@ -52,7 +52,7 @@ TeensyHeadTracker{
     }
   }
 
-  *bypassVSTPlugins{|value|
+  *bypassDecoder{|value|
     bypassVal=value;
     synth.set(\bypass, value);
   }
@@ -182,16 +182,20 @@ TeensyHeadTracker{
         // This will be the BinauralDecoder
         sig = VSTPlugin.ar(sig, numChans, id: \binauralDec, bypass: bypass);
 
+        // Pad output with silence after the stereo channels
+        sig = sig ++ Silent.ar().dup(numChans-2);
+
         ReplaceOut.ar(bus, sig);
       }).add;
 
     }, {
 
       // ATK based
-      SynthDef.new(sdName, {|out=0, yaw=0, pitch=0, roll=0|
+      SynthDef.new(sdName, {|out=0, yaw=0, pitch=0, roll=0, bypass=0|
 
         // HOA input
-        var hoa = In.ar(out, numChans);
+        var hoaIn = In.ar(out, numChans);
+        var hoa = hoaIn;
 
         // format exchange: HOA >> FOA
         var lowCutFreq = 30.0;  // highpass freq
@@ -199,10 +203,10 @@ TeensyHeadTracker{
         // design encoder to exchange (ordering, normalisation)
         var encoder = FoaEncoderMatrix.newHoa1;
 
-        var foa;
+        var foa, stereo, sig;
 
         // Rotate scene
-        hoa = HoaYPR.ar(in: hoa,  yaw: yaw,  pitch: pitch,  roll: roll,  order: ~order);
+        hoa = HoaYPR.ar(in: hoa,  yaw: yaw,  pitch: pitch,  roll: roll,  order: order);
 
         // exchange (ordering, normalisation)
         // truncate to HOA1
@@ -215,9 +219,14 @@ TeensyHeadTracker{
         foa = FoaProximity.ar(foa, AtkHoa.refRadius);
 
         // Decode to binaural
-        foa = FoaDecode.ar(in: foa,  decoder: binauralDecoder);
+        stereo = FoaDecode.ar(in: foa,  decoder: binauralDecoder);
 
-        ReplaceOut.ar(bus: out,  channelsArray: foa);
+        // Pad output with silence after the stereo channels
+        stereo = stereo ++ Silent.ar().dup(numChans-2);
+
+        sig = Select.ar(which: bypass,  array: [stereo, hoaIn]);
+
+        ReplaceOut.ar(bus: out,  channelsArray: sig);
       }).add;
 
     })

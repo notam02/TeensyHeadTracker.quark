@@ -59,9 +59,11 @@ Head related impulse response used for the atk decoder. Ignored if using IEM. Se
 
 returns:: a TeensyHeadTracker
 
-METHOD:: bypassVSTPlugins
+METHOD:: bypassDecoder
 
-Setting this to 1 will bypass the SceneRotator and BinauralDecoder plugins while maintaining the output conversion of the ATK ambisonics to ambix. The default is 0 (no bypass).
+Setting this to 1 will bypass the binaural decoder and scene rotator sending the raw ambisonic signal to the output of SuperCollider. If using the IEM processing, the output conversion of the ATK ambisonics to ambix will be maintained.
+
+NOTE:: When the processing is not bypassed, the outputs after the stereo channels of the decoder are silenced.::
 
 METHOD:: vstController
 
