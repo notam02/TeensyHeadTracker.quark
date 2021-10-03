@@ -7,9 +7,36 @@ DESCRIPTION::
 
 This class is a convenient interface that makes it easy to use the LINK::https://github.com/notam02/Teensy-Head-Tracker##TeensyHeadTracker::, a DIY head tracker for 3D audio production.
 
-It will set up a "main fx" synth at the output of SuperCollider which will process any ambisonics you create in SuperCollider through a properly setup BinauralDecoder with the ambisonic scene being rotated by a SceneRotator. When the users presses ctrl/cmd-period to hardstop the sound, the output synth is automatically respawned. This is equivalent to adding a the SceneRotator and BinauralDecoder to the Master bus of a DAW.
+It is an abstraction that takes care of three things:
 
-For now, it is assumed that you use ATK to create ambisonics in SuperCollider and it will convert ATK's High Order Ambisonics format to ambix which is compatible with the IEM plugins. It also takes into account the reference radius of IEM's BinauralDecoder (thanks Joseph Anderson for digging this up!).
+LIST::
+	## finds the Teensy-Head-Tracker midi controller and connects SuperCollider to it + sets up responder functions
+	## adds and spawns a binaural decoder and scene rotator at the main output of SuperCollider. When the user presses ctrl/cmd-period to hardstop the sound, the output synth is automatically respawned. The user may choose between a native ATK decoder process or using the IEM plugins for the job.
+	## connects the midi controller to a scene rotator prior to the binaural decoder to allow the user to rotate it's head inside of the scene.
+::
+
+It is assumed that you use ATK to create ambisonics in SuperCollider and the synth spawned at the output of SuperCollider by this class expects the ATK's HOA format at it's input. If the IEM plugins are chosen as a method for decoding, the ATK format is automatically converted to ambix with the correct reference radius to match the decoder (thanks Joseph Anderson for digging up the correct radius).
+
+SUBSECTION:: Dependencies
+To make use of the CODE::\atk:: binaural decoder, you first need to download the kernels and matrices for ATK:
+
+CODE::
+// Install dependencies for atk binaural decoder:
+(
+Atk.downloadMatrices;
+Atk.downloadKernels;
+)
+::
+
+To make use of the CODE::\iem:: binaural decoder, you need to install both the vstplugin extension for SuperCollider and the IEM plugins:
+
+CODE::
+// Install dependencies for iem binaural decoder:
+(
+"https://plugins.iem.at/".openOS;
+"https://git.iem.at/pd/vstplugin".openOS;
+)
+::
 
 CLASSMETHODS::
 
@@ -19,6 +46,17 @@ ARGUMENT::order
 
 The ambisonics order.
 
+ARGUMENT::type
+
+Type of binaural decoder. Can be either \atk or \iem.
+
+If CODE::\atk:: is chosen, a binaural decoder is setup using the CIPIC kernel (see LINK::Classes/FoaDecoderKernel#newCIPIC::). This is the method used: LINK::Guides/HOA-Binaural-Decoding::.
+
+If CODE::\iem:: is chosen, the IEM vstplugin extension is used in conjunction with the LINK::https://plugins.iem.at/docs/plugindescriptions/#binauraldecoder##BinauralDecoder:: VST plugin.
+
+ARGUMENT::cipicSubjectID
+Head related impulse response used for the atk decoder. Ignored if using IEM. See LINK::Classes/FoaDecoderKernel#newCIPIC:: for more info.
+
 returns:: a TeensyHeadTracker
 
 METHOD:: bypassVSTPlugins
@@ -27,7 +65,7 @@ Setting this to 1 will bypass the SceneRotator and BinauralDecoder plugins while
 
 METHOD:: vstController
 
-This allows access to the internally used LINK::Classes/VstPluginController::.
+This allows access to the internally used LINK::Classes/VstPluginController:: if using the IEM process.
 
 Useful for example if you want to use the guis of the vst plugins used:
 
@@ -39,6 +77,33 @@ TeensyHeadTracker.vstController.binauralDec.gui
 EXAMPLES::
 
 code::
-// Set up 7th order headtracker
-TeensyHeadTracker.new(order:7);
+~order = 3;
+TeensyHeadTracker.new(order:~order, type: \atk);
+
+// Play white noise at the front
+(
+Ndef(\hoa_testorientation, {|amp=0.125, freq=100, azi=0, ele=0|
+ var sig = WhiteNoise.ar(amp);
+
+ sig = HoaEncodeDirection.ar(
+		 sig,
+		 azi,
+		 ele,
+		 AtkHoa.refRadius,
+		 ~order
+		 );
+
+ }).play
+)
+
+// Now change the direction of the source while you rotate your head:
+Ndef(\hoa_testorientation).set(\azi, 0.5*pi);
+
+Ndef(\hoa_testorientation).set(\azi, pi);
+
+Ndef(\hoa_testorientation).set(\azi, 0.5*(-pi));
+
+Ndef(\hoa_testorientation).set(\azi, -pi);
+
+Ndef(\hoa_testorientation).set(\azi, 0);
 ::

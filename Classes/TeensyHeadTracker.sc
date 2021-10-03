@@ -9,40 +9,46 @@ TeensyHeadTracker{
   classvar <rollMidi, <pitchMidi, <yawMidi;
   classvar <decoderType;
   classvar <binauralDecoder;
+  classvar <subjectID;
 
-  *new { |order=3, type=\atk|
-    ^this.init(order);
+  *new { |order=3, type=\atk, cipicSubjectID=21|
+    ^this.init(order, type, cipicSubjectID);
   }
 
-  *init { |ambisonicsOrder, type|
+  *init { |ambisonicsOrder, type, cipicSubjectID|
     order = ambisonicsOrder;
     decoderType = type;
+    subjectID = cipicSubjectID;
 
-    if(type != \iem or: { type != \atk }, { "type is neither \atk or \iem. It is: %. Please choose one of the former".format(type).error });
+    // if(decoderType != \iem or: { decoderType != \atk }, { "type is neither \atk or \iem. It is: %. Please choose one of the former".format(decoderType).error });
 
     numChans = HoaOrder.new(order).size;
 
-    if(Server.local.hasBooted, {
+    if(Server.local.hasBooted.not, {
       "%: Server is not booted. Won't do anything until it has booted".format(this.name).warn
     });
 
     Server.local.doWhenBooted{
-      this.addSynthDef();
-      this.connectController();
+      fork{
 
-      if(type == \atk, {
-        binauralDecoder = FoaDecoderKernel.newCIPIC;
-      });
+        Server.local.sync;
 
-      s.sync;
+        if(decoderType == \atk, {
+          binauralDecoder = FoaDecoderKernel.newCIPIC(subjectID);
+        });
 
-      if(enabled.not,{
-        // This will respawn the synth on hardstop/cmd-period. Inspired by SafetyNet
-        ServerTree.add(this.treeFunc, Server.local);
-        this.treeFunc.value;
-        enabled = true;
-      }, { "Headtracker already setup and enabled!".warn});
+        Server.local.sync;
+        this.addSynthDef();
+        this.connectController();
 
+        Server.local.sync;
+        if(enabled.not,{
+          // This will respawn the synth on hardstop/cmd-period. Inspired by SafetyNet
+          ServerTree.add(this.treeFunc, Server.local);
+          this.treeFunc.value;
+          enabled = true;
+        }, { "Headtracker already setup and enabled!".warn});
+      }
     }
   }
 
@@ -57,15 +63,27 @@ TeensyHeadTracker{
 
     forkIfNeeded{
 
+      // Free kernel after use
+      // CmdPeriod.doOnce(object: {
+      //   "Freeing teensy head tracker's decoder kernel".postln;
+      //   TeensyHeadTracker.binauralDecoder.free;
+      // });
+
+      // if(decoderType == \atk, {
+      //   binauralDecoder = binauralDecoder ?? { FoaDecoderKernel.newCIPIC(subjectID) };
+      // });
+
+      Server.local.sync;
+
       synth = Synth.after(1, sdName, [\bus, 0, \bypass, bypassVal]);
 
-      /*
+            /*
 
-      Open plugins
+            Open plugins
 
-      */
+            */
 
-            if(type == \iem, {
+            if(decoderType  == \iem, {
               vstController = VSTPluginController.collect(synth);
               Server.local.sync;
               vstController.sceneRot.open("SceneRotator");
@@ -83,7 +101,7 @@ TeensyHeadTracker{
             pitchMidi = pitchMidi ?? {CC14.new(cc1: 17,  cc2: 49,  chan: 0,  fix: true,  normalizeValues: true)};
             rollMidi = rollMidi ?? { CC14.new(cc1: 18,  cc2: 50,  chan: 0,  fix: true,  normalizeValues: true)};
 
-            if(type=\iem, {
+            if(decoderType == \iem, {
               yawMidi.func_({|val|
                 if(vstController.sceneRot.loaded, {
                   vstController.sceneRot.set('Yaw Angle', val);
@@ -125,7 +143,7 @@ TeensyHeadTracker{
 
   *addSynthDef{
     sdName="headtracker%".format(order).asSymbol;
-    if(type == \iem, {
+    if(decoderType  == \iem, {
       SynthDef(sdName, { |bus, bypass=0|
 
         // HOA input

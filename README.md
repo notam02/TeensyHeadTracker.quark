@@ -2,16 +2,18 @@
 
 ### A convenient interface for the Teensy Head Tracker
 
-This quark is a convenient interface that makes it easy to use the [TeensyHeadTracker](https://github.com/notam02/Teensy-Head-Tracker), a DIY head tracker for 3D audio production.
+This quark is a convenient interface that makes it easy to use the [TeensyHeadTracker](https://github.com/notam02/Teensy-Head-Tracker), a DIY head tracker for 3D audio production. 
 
-It will set up a "main fx" synth at the output of SuperCollider which will process any ambisonics you create in SuperCollider through a properly setup BinauralDecoder with the ambisonic scene being rotated by a SceneRotator. When the users presses ctrl/cmd-period to hardstop the sound, the output synth is automatically respawned. This is equivalent to adding a the SceneRotator and BinauralDecoder to the Master bus of a DAW.
+It automatically sets up the head tracker, connects SuperCollider to it and patches it into a "global fx" type setup with a binaural decoder at the main output, allowing you to monitor your ambisonics work in SuperCollider and rotate your head inside of the scene using the tracker.
 
-For now, it is assumed that you use ATK to create ambisonics in SuperCollider and it will convert ATK's High Order Ambisonics format to ambix which is compatible with the IEM plugins. It also takes into account the reference radius of IEM's BinauralDecoder (thanks Joseph Anderson for digging this up!).
+The package supports using native ATK objects to handle all of the rotation and decoding or using the IEM plugins' BinauralDecoder.
+
+See the helpfile for more information.
 
 ### Dependencies
 
-- [IEM's vstplugin extension for SuperCollider](https://git.iem.at/pd/vstplugin/-/releases)
-- [The IEM plugins](https://plugins.iem.at/)
+- [IEM's vstplugin extension for SuperCollider](https://git.iem.at/pd/vstplugin/-/releases) (optional)
+- [The IEM plugins](https://plugins.iem.at/) (optional)
 - The `CC14` and `atk-sc3` quarks (these are installed automatically through the quark system when installing this package).
 
 ### Installation
