@@ -16,7 +16,10 @@ See the helpfile for more information.
 - [The IEM plugins](https://plugins.iem.at/) (optional)
 - The `CC14` and `atk-sc3` quarks (these are installed automatically through the quark system when installing this package).
 
+This quark depends on the ambisonic toolkit and requires a full installation of it. See [these instructions](https://github.com/ambisonictoolkit/atk-sc3#installing) for more information.
+
 ### Installation
 
 Open up SuperCollider and evaluate the following line of code:
 `Quarks.install("https://github.com/notam02/teensyheadtracker.quark")`
+
