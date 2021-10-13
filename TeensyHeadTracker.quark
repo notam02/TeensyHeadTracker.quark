@@ -3,7 +3,7 @@
   summary: "A convenient interface for the Teensy Head Tracker",
   version: "0.001",
   schelp: "TeensyHeadTracker.schelp",
-  dependencies: ["CC14", "atk-sc3"],
+  dependencies: ["CC14", "atk-sc3", "https://github.com/madskjeldgaard/binauraldecoders"],
   license: "GNU GPL v3.0",
   copyright: "Mads Kjeldgaard",
   ext_dependency: nil,

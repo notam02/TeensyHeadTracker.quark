@@ -11,30 +11,20 @@ It is an abstraction that takes care of three things:
 
 LIST::
 	## finds the Teensy-Head-Tracker midi controller and connects SuperCollider to it + sets up responder functions
-	## adds and spawns a binaural decoder and scene rotator at the main output of SuperCollider. When the user presses ctrl/cmd-period to hardstop the sound, the output synth is automatically respawned. The user may choose between a native ATK decoder process or using the IEM plugins for the job.
+	## adds and spawns a binaural decoder and scene rotator at the main output of SuperCollider. When the user presses ctrl/cmd-period to hardstop the sound, the output synth is automatically respawned. The user may choose between a native ATK decoder process.
 	## connects the midi controller to a scene rotator prior to the binaural decoder to allow the user to rotate it's head inside of the scene.
 ::
 
-It is assumed that you use ATK to create ambisonics in SuperCollider and the synth spawned at the output of SuperCollider by this class expects the ATK's HOA format at it's input. If the IEM plugins are chosen as a method for decoding, the ATK format is automatically converted to ambix with the correct reference radius to match the decoder (thanks Joseph Anderson for digging up the correct radius).
+It is assumed that you use ATK to create ambisonics in SuperCollider and the synth spawned at the output of SuperCollider by this class expects the ATK's HOA format at it's input.
 
 SUBSECTION:: Dependencies
-To make use of the CODE::\atk:: binaural decoder, you first need to download the kernels and matrices for ATK:
+A full install of ATK is necessary for this quark to work:
 
 CODE::
 // Install dependencies for atk binaural decoder:
 (
 Atk.downloadMatrices;
 Atk.downloadKernels;
-)
-::
-
-To make use of the CODE::\iem:: binaural decoder, you need to install both the vstplugin extension for SuperCollider and the IEM plugins:
-
-CODE::
-// Install dependencies for iem binaural decoder:
-(
-"https://plugins.iem.at/".openOS;
-"https://git.iem.at/pd/vstplugin".openOS;
 )
 ::
 
@@ -46,41 +36,16 @@ ARGUMENT::order
 
 The ambisonics order.
 
-ARGUMENT::type
-
-Type of binaural decoder. Can be either \atk or \iem.
-
-If CODE::\atk:: is chosen, a binaural decoder is setup using the CIPIC kernel (see LINK::Classes/FoaDecoderKernel#newCIPIC::). This is the method used: LINK::Guides/HOA-Binaural-Decoding::.
-
-If CODE::\iem:: is chosen, the IEM vstplugin extension is used in conjunction with the LINK::https://plugins.iem.at/docs/plugindescriptions/#binauraldecoder##BinauralDecoder:: VST plugin.
-
 ARGUMENT::cipicSubjectID
-Head related impulse response used for the atk decoder. Ignored if using IEM. See LINK::Classes/FoaDecoderKernel#newCIPIC:: for more info.
+Head related impulse response used for the atk decoder. See LINK::Classes/FoaDecoderKernel#newCIPIC:: for more info.
 
 returns:: a TeensyHeadTracker
-
-METHOD:: bypassDecoder
-
-Setting this to 1 will bypass the binaural decoder and scene rotator sending the raw ambisonic signal to the output of SuperCollider. If using the IEM processing, the output conversion of the ATK ambisonics to ambix will be maintained.
-
-NOTE:: When the processing is not bypassed, the outputs after the stereo channels of the decoder are silenced.::
-
-METHOD:: vstController
-
-This allows access to the internally used LINK::Classes/VstPluginController:: if using the IEM process.
-
-Useful for example if you want to use the guis of the vst plugins used:
-
-code::
-TeensyHeadTracker.vstController.sceneRot.gui
-TeensyHeadTracker.vstController.binauralDec.gui
-::
 
 EXAMPLES::
 
 code::
 ~order = 3;
-TeensyHeadTracker.new(order:~order, type: \atk);
+TeensyHeadTracker.new(order:~order);
 
 // Play white noise at the front
 (
@@ -108,4 +73,8 @@ Ndef(\hoa_testorientation).set(\azi, 0.5*(-pi));
 Ndef(\hoa_testorientation).set(\azi, -pi);
 
 Ndef(\hoa_testorientation).set(\azi, 0);
+
+// Now automate
+Ndef(\rotator, { LFSaw.kr(\rotateFreq.kr(0.5), mul: pi) });
+Ndef(\hoa_testorientation).map(\azi, Ndef(\rotator));
 ::
